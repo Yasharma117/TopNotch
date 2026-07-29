@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Distribution outside the App Store, signed with Developer ID Application. -->
+	<key>method</key>
+	<string>developer-id</string>
+	<key>teamID</key>
+	<string>8B8KZZ8HVU</string>
+	<!-- Let Xcode pick the Developer ID Application cert automatically. -->
+	<key>signingStyle</key>
+	<string>automatic</string>
+</dict>
+</plist>
