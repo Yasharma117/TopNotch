@@ -183,7 +183,6 @@ final class NotchViewModel: ObservableObject {
     let textMatcher = TeleprompterTextMatcher()
 
     private var collapseWorkItem: DispatchWorkItem?
-    private var scrollTimer: AnyCancellable?
     private var speechCancellable: AnyCancellable?
     private var textCancellable: AnyCancellable?
     private var speechRestartCancellable: AnyCancellable?
@@ -393,48 +392,12 @@ final class NotchViewModel: ObservableObject {
         isRecording = false
         onExpansionChanged?()  // Recalculate height (speed row removed)
 
-        if settings.autoUploadEnabled {
-            await uploadToCloud()
-        }
-
         if !isHovering && !isSettingsPresented {
             scheduleCollapseIfAllowed()
         }
     }
 
-    private func uploadToCloud() async {
-        guard FileManager.default.fileExists(atPath: outputURL.path) else {
-            statusMessage = .error("Recording file not found")
-            return
-        }
-        let manager = CloudStorageManager.shared
-        let results = await manager.uploadToEnabledProviders(outputURL, settings: settings.uploadSettings)
-        if results.isEmpty, let error = manager.lastUploadError {
-            statusMessage = .error("Upload failed: \(error)")
-        } else if !results.isEmpty {
-            let providers = results.map { $0.provider }.joined(separator: ", ")
-            statusMessage = .success("Uploaded to \(providers)")
-        }
-    }
-
     // MARK: - Scroll control (for teleprompter during recording)
-
-    func startScroll() {
-        scrollTimer?.cancel()
-        scrollTimer = Timer.publish(every: 1 / 60, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                let speed = self.settings.teleprompterSpeed / 60
-                self.scrollState.scrollOffset += CGFloat(speed)
-                self.scrollState.displayOffset = self.scrollState.scrollOffset
-            }
-    }
-
-    func stopScroll() {
-        scrollTimer?.cancel()
-        scrollTimer = nil
-    }
 
     func resetScroll() {
         scrollState.reset()
@@ -565,10 +528,6 @@ final class NotchViewModel: ObservableObject {
         } else if !isHovering {
             scheduleCollapseIfAllowed()
         }
-    }
-
-    func prepareSettingsInteraction() async {
-        expandPanel()
     }
 
     func toggleVoiceTest() async {
