@@ -25,9 +25,15 @@ final class NonActivatingPanel: NSPanel {
 ///      to fit a "natural" content size.
 ///   2. sizingOptions = []: SwiftUI's per-animation-frame window resize is
 ///      disabled entirely.
+///
+/// Note: intentionally NOT generic. A generic `NSHostingView` subclass triggers
+/// a Swift optimizer crash (EarlyPerfInliner on the generated generic `deinit`)
+/// under `-O`/Release. It's only ever instantiated with `NotchContentView`, so
+/// hardcoding the content type sidesteps the compiler bug while keeping Release
+/// optimizations enabled.
 @MainActor
-private final class ManagedHostingView<Content: View>: NSHostingView<Content> {
-    required init(rootView: Content) {
+private final class ManagedHostingView: NSHostingView<NotchContentView> {
+    required init(rootView: NotchContentView) {
         super.init(rootView: rootView)
         if #available(macOS 13.0, *) {
             sizingOptions = []
