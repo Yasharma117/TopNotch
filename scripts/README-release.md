@@ -75,8 +75,11 @@ profile (auto-created), and uploads to App Store Connect.
    export ASC_ISSUER_ID="<ISSUER_ID>"
    export ASC_KEY_PATH="$HOME/path/to/AuthKey_XXXX.p8"
    ```
-   The API key must be allowed to upload builds (App Manager role is safest;
-   Developer usually works). It can be the same key used for notarization.
+   The API key must have the **App Manager** (or Admin) role. The Developer
+   role CANNOT create the distribution certificate / provisioning profile via
+   Xcode cloud signing — it fails with "Cloud signing permission error". The
+   notarization key (role Developer) is therefore NOT sufficient here; make a
+   new key with App Manager and point ASC_* at it.
 3. Be signed into the Apple ID (team `8B8KZZ8HVU`) in Xcode so automatic
    signing can mint the Apple Distribution cert + App Store profile.
 
