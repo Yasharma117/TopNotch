@@ -5,6 +5,10 @@
 	<!-- Hides the Dock icon — the notch panel IS the UI -->
 	<key>LSUIElement</key>
 	<true/>
+	<!-- Export compliance: app uses only exempt encryption (standard HTTPS/TLS),
+	     so no French/US export docs are required. Avoids the per-upload prompt. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>TopNotch needs microphone access to record audio while you read your script.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

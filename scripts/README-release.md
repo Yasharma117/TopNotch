@@ -57,3 +57,50 @@ verify with `spctl`/`stapler` → produce `build/TopNotch.zip` to distribute.
   developer" prompt.
 - To ship a `.dmg` instead of a `.zip`, notarize/staple the `.app` first, then
   build the dmg around the stapled app (or notarize the dmg as well).
+
+---
+
+# Submitting to the Mac App Store
+
+This is a **separate** path from Developer ID above. `scripts/appstore.sh`
+archives, signs with **Apple Distribution** + a Mac App Store provisioning
+profile (auto-created), and uploads to App Store Connect.
+
+## One-time setup
+1. **App record**: create the app for `com.yashsharma.TopNotch` in App Store
+   Connect (My Apps → +). Fill listing metadata (see checklist below).
+2. **Local credentials** (git-ignored): create `scripts/asc-credentials.local.sh`:
+   ```sh
+   export ASC_KEY_ID="<KEY_ID>"
+   export ASC_ISSUER_ID="<ISSUER_ID>"
+   export ASC_KEY_PATH="$HOME/path/to/AuthKey_XXXX.p8"
+   ```
+   The API key must be allowed to upload builds (App Manager role is safest;
+   Developer usually works). It can be the same key used for notarization.
+3. Be signed into the Apple ID (team `8B8KZZ8HVU`) in Xcode so automatic
+   signing can mint the Apple Distribution cert + App Store profile.
+
+## Cutting a build
+```sh
+./scripts/appstore.sh
+```
+The build appears as "Processing" in App Store Connect, then becomes selectable
+on the version page. Bump `CURRENT_PROJECT_VERSION` (build number) in the project
+before each new upload — App Store Connect rejects duplicate build numbers.
+
+## Listing metadata you still need (App Store Connect, in the browser)
+- Name, subtitle, description, keywords, promotional text
+- **Category** (e.g. Productivity)
+- **Screenshots** (macOS sizes, e.g. 2560×1600 / 2880×1800)
+- **Support URL** and **Privacy Policy URL** (both required, must be hosted)
+- **Age rating** questionnaire
+- **App Privacy** answers. Speech runs on-device, and the cloud-upload feature
+  was removed, so data collection is minimal — answer honestly per the current
+  build.
+
+Notes:
+- App Sandbox is already enabled (required for MAS).
+- `ITSAppUsesNonExemptEncryption=false` is in Info.plist (only exempt HTTPS/TLS
+  is used), so no per-upload export-compliance prompt.
+- The app is an accessory (`LSUIElement`) with no Dock icon; the App Store still
+  reads the 1024px icon from the asset catalog (now a proper macOS icon set).

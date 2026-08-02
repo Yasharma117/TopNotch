@@ -18,6 +18,10 @@ xcuserdata/
 *.profraw
 *.profdata
 
+# Secrets / local-only config (App Store Connect API key ids, .p8 keys)
+*.local.sh
+*.p8
+
 # Misc
 *.hmap
 *.ipa
