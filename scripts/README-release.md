@@ -91,12 +91,32 @@ profile (auto-created), and uploads to App Store Connect.
    ```
 
 ## Cutting a build
+
+### First submission: use Xcode's GUI (recommended)
+`xcodebuild`'s command-line automatic signing still queries **cloud-managed
+distribution certificates**, which Apple forbids over an API-key session
+(`FORBIDDEN_ERROR`) even when local Apple Distribution + installer certs exist.
+Xcode.app's interactive session does *not* have this restriction, so for the
+first distribution use the GUI — it registers the App ID, creates the Mac App
+Store provisioning profile, signs, and uploads:
+
+1. Create the app record first (App Store Connect → My Apps → + → New App →
+   macOS → bundle id `com.yashsharma.TopNotch`).
+2. In Xcode: **Product → Archive** (or reuse `./scripts/appstore.sh --dry-run`'s
+   archive, which validates the build).
+3. Organizer → select the archive → **Distribute App → App Store Connect →
+   Upload** → accept the automatic signing prompts.
+
+After the first successful distribution the profile exists, so `xcodebuild`
+manual signing works for later uploads.
+
+### Later uploads: CLI
 ```sh
-./scripts/appstore.sh
+./scripts/appstore.sh          # uses build/ timestamp as the build number
 ```
-The build appears as "Processing" in App Store Connect, then becomes selectable
-on the version page. Bump `CURRENT_PROJECT_VERSION` (build number) in the project
-before each new upload — App Store Connect rejects duplicate build numbers.
+`appstore.sh` auto-assigns a unique build number (a UTC timestamp), so no need
+to bump `CURRENT_PROJECT_VERSION` by hand. `--dry-run` archives + signs locally
+without uploading.
 
 ## Listing metadata you still need (App Store Connect, in the browser)
 - Name, subtitle, description, keywords, promotional text
