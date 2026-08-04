@@ -75,13 +75,20 @@ profile (auto-created), and uploads to App Store Connect.
    export ASC_ISSUER_ID="<ISSUER_ID>"
    export ASC_KEY_PATH="$HOME/path/to/AuthKey_XXXX.p8"
    ```
-   The API key must have the **App Manager** (or Admin) role. The Developer
-   role CANNOT create the distribution certificate / provisioning profile via
-   Xcode cloud signing — it fails with "Cloud signing permission error". The
-   notarization key (role Developer) is therefore NOT sufficient here; make a
-   new key with App Manager and point ASC_* at it.
-3. Be signed into the Apple ID (team `8B8KZZ8HVU`) in Xcode so automatic
-   signing can mint the Apple Distribution cert + App Store profile.
+   The API key uploads the build and creates provisioning profiles. Use the
+   App Manager role.
+3. **Create the distribution certificates once, in Xcode** (this is required —
+   App Store Connect API keys are FORBIDDEN by Apple from creating cloud-managed
+   *distribution* certificates, so the CLI cannot mint them; it fails with
+   "You haven't been given access to cloud-managed distribution certificates").
+   Xcode → Settings → Accounts → your Apple ID → **Manage Certificates…** → **+**:
+   create **Apple Distribution** and **Mac Installer Distribution**. These land
+   in your keychain with private keys, and the CLI export then signs with them
+   locally (only the provisioning profile is fetched via the API key).
+   Verify:
+   ```sh
+   security find-identity -v | grep -E "Apple Distribution|Mac Installer Distribution"
+   ```
 
 ## Cutting a build
 ```sh
