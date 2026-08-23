@@ -39,7 +39,8 @@ enum AppColors {
 
 // MARK: - NotchBoxShape
 
-private struct NotchBoxShape: Shape {
+/// Internal rather than private so the geometry can be regression-tested.
+struct NotchBoxShape: Shape {
     var bottomRadius: CGFloat
     var notchWidth: CGFloat = NotchChromeMetrics.notchWidth
     var shoulderDrop: CGFloat = NotchChromeMetrics.shoulderDrop
@@ -112,6 +113,11 @@ private struct NotchBoxShape: Shape {
             control: CGPoint(x: minX, y: shoulderY)
         )
         p.addLine(to: CGPoint(x: topShelfMinX, y: shoulderY))
+        // Land on the shoulder before curving up to the tab. Without this the curve
+        // starts at topShelfMinX — which is minX + outerTop for any panel wider than
+        // ~338 — and the left emergence stretches across the whole shelf while the
+        // right stays a tight 1.6 * emergence curve, leaving the notch visibly lopsided.
+        p.addLine(to: leftShoulderStart)
         p.addCurve(
             to: CGPoint(x: notchLeft, y: minY),
             control1: CGPoint(x: notchLeft - effectiveEmergence * 1.05, y: shoulderY),

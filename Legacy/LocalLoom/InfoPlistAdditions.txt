@@ -1,4 +1,0 @@
-Add the following to your app target's Info.plist (as a key/value):
-
-<key>NSMicrophoneUsageDescription</key>
-<string>LocalLoom uses the microphone to record audio during screen capture.</string>
