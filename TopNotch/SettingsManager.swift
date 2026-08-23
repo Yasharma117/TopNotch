@@ -121,7 +121,14 @@ final class SettingsManager: ObservableObject {
 
         self.teleprompterTextAlignment = defaults.string(forKey: Keys.teleprompterTextAlignment) ?? "leading"
 
-        self.lastOutputPath = defaults.string(forKey: Keys.lastOutputPath) ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/Recording.m4a").path
+        // Migrate anyone still carrying the old Desktop default, which the sandbox
+        // always refused — otherwise their recordings keep failing silently.
+        let storedOutput = defaults.string(forKey: Keys.lastOutputPath)
+        if let storedOutput, storedOutput != Self.unwritableLegacyPath {
+            self.lastOutputPath = storedOutput
+        } else {
+            self.lastOutputPath = Self.defaultOutputURL().path
+        }
         
         let savedCountdown = defaults.integer(forKey: Keys.countdownDuration)
         self.countdownDuration = savedCountdown == 0 ? 3 : savedCountdown
@@ -146,10 +153,28 @@ final class SettingsManager: ObservableObject {
         teleprompterTextAlignment = "leading"
     }
 
+
+    /// Where recordings go by default.
+    ///
+    /// The app is sandboxed, and the sandbox grants Downloads
+    /// (`com.apple.security.files.downloads.read-write`) but has no Desktop
+    /// equivalent — Desktop is only reachable through a save panel. Writing there
+    /// fails with NSFileWriteNoPermissionError (513), so Downloads is the only
+    /// location the app can use without prompting.
+    static func defaultOutputURL() -> URL {
+        let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+            ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return downloads.appendingPathComponent("TopNotch Recording.m4a")
+    }
+
+    /// The pre-sandbox default, which could never be written to.
+    private static let unwritableLegacyPath =
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/Recording.m4a").path
+
     /// Reset all settings to defaults
     func resetAllSettings() {
         resetTeleprompterSettings()
-        lastOutputPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/Recording.m4a").path
+        lastOutputPath = Self.defaultOutputURL().path
         countdownDuration = 3
         speechSyncEnabled = false
         speechLocale = "en-IN"

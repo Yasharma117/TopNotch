@@ -13,8 +13,8 @@
 	<!-- Hardware: Audio Input = microphone -->
 	<key>com.apple.security.device.audio-input</key>
 	<true/>
-	<!-- Network: outgoing only -->
-	<key>com.apple.security.network.client</key>
-	<true/>
+	<!-- No network entitlement: speech recognition is forced on-device and the app
+	     makes no network calls, so the sandbox enforces "nothing leaves your Mac"
+	     rather than the app merely promising it. -->
 </dict>
 </plist>

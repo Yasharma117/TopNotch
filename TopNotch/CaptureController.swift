@@ -51,11 +51,25 @@ public final class CaptureController: NSObject {
         writer.add(audioInput)
 
         let session = AVCaptureSession()
-        if let mic = AVCaptureDevice.default(for: .audio),
-           let micInput = try? AVCaptureDeviceInput(device: mic),
-           session.canAddInput(micInput) {
-            session.addInput(micInput)
+        // Every other failure here is surfaced; this one used to fall through the
+        // if-let and record a valid, entirely silent file with no indication why.
+        guard let mic = AVCaptureDevice.default(for: .audio) else {
+            let e = NSError(domain: "CaptureController", code: -6,
+                            userInfo: [NSLocalizedDescriptionKey: "No microphone is available."])
+            delegate?.captureController(self, didFail: e); throw e
         }
+        let micInput: AVCaptureDeviceInput
+        do {
+            micInput = try AVCaptureDeviceInput(device: mic)
+        } catch {
+            delegate?.captureController(self, didFail: error); throw error
+        }
+        guard session.canAddInput(micInput) else {
+            let e = NSError(domain: "CaptureController", code: -7,
+                            userInfo: [NSLocalizedDescriptionKey: "Cannot record from \(mic.localizedName)."])
+            delegate?.captureController(self, didFail: e); throw e
+        }
+        session.addInput(micInput)
         let audioOutput = AVCaptureAudioDataOutput()
         audioOutput.setSampleBufferDelegate(self, queue: audioQueue)
         if session.canAddOutput(audioOutput) {

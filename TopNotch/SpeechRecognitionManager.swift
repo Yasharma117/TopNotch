@@ -84,10 +84,15 @@ final class SpeechRecognitionManager: NSObject, ObservableObject {
         
         recognitionRequest.shouldReportPartialResults = true
         
-        // Use on-device recognition if available (privacy + speed)
-        if #available(macOS 13.0, *) {
-            recognitionRequest.requiresOnDeviceRecognition = speechRecognizer.supportsOnDeviceRecognition
+        // On-device is a hard requirement, not a preference. Assigning
+        // `supportsOnDeviceRecognition` here meant that whenever a locale lacked
+        // on-device support the flag silently became false and SFSpeechRecognizer
+        // streamed the microphone to Apple's servers — which is the opposite of
+        // what this app promises. Refuse instead, and say why.
+        guard speechRecognizer.supportsOnDeviceRecognition else {
+            throw SpeechError.onDeviceUnavailable(locale: speechRecognizer.locale.identifier)
         }
+        recognitionRequest.requiresOnDeviceRecognition = true
         
         // Configure audio engine
         audioEngine = AVAudioEngine()
@@ -187,6 +192,7 @@ enum SpeechError: LocalizedError {
     case audioEngineFailed
     case notAuthorized
     case recognizerUnavailable
+    case onDeviceUnavailable(locale: String)
     
     var errorDescription: String? {
         switch self {
@@ -196,6 +202,11 @@ enum SpeechError: LocalizedError {
             return "Failed to initialize audio engine"
         case .notAuthorized:
             return "Speech recognition not authorized"
+        case .onDeviceUnavailable(let locale):
+            let name = Locale.current.localizedString(forIdentifier: locale) ?? locale
+            return "On-device speech recognition isn't installed for \(name). "
+                 + "Add it under System Settings ▸ General ▸ Language & Region, or pick "
+                 + "another language. TopNotch won't send your voice to a server."
         case .recognizerUnavailable:
             return "Speech recognizer is unavailable right now"
         }
