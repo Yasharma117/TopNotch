@@ -1,8 +1,26 @@
+<div align="center">
+
+<img src="TopNotch/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" alt="TopNotch app icon" width="128">
+
 # TopNotch
 
-TopNotch is a macOS teleprompter that lives in the Mac notch. It keeps a script
-available while you read, scrolls it automatically or follows your voice, and
-can record the microphone audio to a local `.m4a` file.
+**A macOS teleprompter that lives in your Mac's notch, follows your voice, and records your microphone audio locally.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-lightgrey)
+
+[Live website](https://topnotch-website-tau.vercel.app/) ·
+[Run locally](#run-locally) ·
+[How it works](#how-it-works) ·
+[Keyboard shortcuts](#keyboard-shortcuts) ·
+[Limitations](#known-limitations)
+
+</div>
+
+---
+
+TopNotch keeps a script available while you read, scrolls it automatically or
+follows your voice, and can record microphone audio to a local `.m4a` file.
 
 **Live website:** [topnotch-website-tau.vercel.app](https://topnotch-website-tau.vercel.app/)
 
