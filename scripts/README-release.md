@@ -10,6 +10,12 @@ Team ID: `8B8KZZ8HVU` · Bundle ID: `com.yashsharma.TopNotch`
 
 You only do this once. It requires your Apple account (paid Developer Program).
 
+### 0. Install create-dmg
+```sh
+brew install create-dmg
+```
+Used to build the install window (app icon + Applications drop target).
+
 ### 1. Create a "Developer ID Application" certificate
 - Xcode → **Settings → Accounts** → select your Apple ID → **Manage Certificates…**
 - Click **+** → **Developer ID Application** → Done.
@@ -44,7 +50,18 @@ The `.p8` itself is not stored in the repo.
 
 It will: clean → archive (Release) → export & Developer-ID sign with hardened
 runtime → zip → submit to Apple's notary service (waits) → staple the ticket →
-verify with `spctl`/`stapler` → produce `build/TopNotch.zip` to distribute.
+verify with `spctl`/`stapler` → build `build/TopNotch.dmg` (app icon on the left,
+Applications drop target on the right) → notarize and staple the dmg itself →
+also emit `build/TopNotch.zip`.
+
+Ship the **dmg**; the zip is kept only so older download links keep working.
+Upload both to the release:
+```sh
+gh release upload v1.0 build/TopNotch.dmg
+```
+The website links to `releases/latest/download/TopNotch.dmg`, so **the asset
+filename must stay exactly `TopNotch.dmg`** on every future release or the
+Download button 404s.
 
 `build/` is git-ignored, so nothing generated here gets committed.
 
@@ -55,8 +72,9 @@ verify with `spctl`/`stapler` → produce `build/TopNotch.zip` to distribute.
   ```
 - A stapled app passes Gatekeeper offline; users won't see the "unidentified
   developer" prompt.
-- To ship a `.dmg` instead of a `.zip`, notarize/staple the `.app` first, then
-  build the dmg around the stapled app (or notarize the dmg as well).
+- The dmg is built around the already-stapled app and then notarized and
+  stapled itself — that second staple is what keeps the very first open clean
+  for a user who is offline.
 
 ---
 
@@ -132,5 +150,8 @@ Notes:
 - App Sandbox is already enabled (required for MAS).
 - `ITSAppUsesNonExemptEncryption=false` is in Info.plist (only exempt HTTPS/TLS
   is used), so no per-upload export-compliance prompt.
-- The app is an accessory (`LSUIElement`) with no Dock icon; the App Store still
-  reads the 1024px icon from the asset catalog (now a proper macOS icon set).
+- The app shows a Dock icon by default (right-click → Quit is how people expect
+  to close a Mac app). `LSUIElement` is deliberately absent from Info.plist so
+  there is no icon flicker at launch; Settings → General → "Show in Dock" flips
+  the activation policy at runtime for users who want it hidden. The App Store
+  reads the 1024px icon from the asset catalog (a proper macOS icon set).
