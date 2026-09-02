@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AppKit
 import Combine
 
 /// Manages persistence of app settings using UserDefaults
@@ -29,6 +30,9 @@ final class SettingsManager: ObservableObject {
 
         // Banners
         static let arrangeTextBannerDismissed = "banner.arrangeTextDismissed"
+
+        // App
+        static let showInDock = "app.showInDock"
     }
     
     // MARK: - Teleprompter Settings
@@ -98,6 +102,30 @@ final class SettingsManager: ObservableObject {
         }
     }
 
+    // MARK: - App Settings
+
+    /// The Dock icon is on by default — right-click → Quit is how most people
+    /// expect to close a Mac app. Turning this off makes TopNotch an accessory
+    /// app that lives only in the notch and the menu bar. Switches the
+    /// activation policy at runtime, so no relaunch is needed either way.
+    @Published var showInDock: Bool {
+        didSet {
+            defaults.set(showInDock, forKey: Keys.showInDock)
+            applyDockVisibility()
+        }
+    }
+
+    /// The single place the activation policy is set. Called on launch and on
+    /// every change to `showInDock`.
+    func applyDockVisibility() {
+        NSApp.setActivationPolicy(showInDock ? .regular : .accessory)
+        if showInDock {
+            // Coming from .accessory the icon does not appear until the app is
+            // activated at least once.
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+
     // MARK: - Banner Settings
 
     @Published var arrangeTextBannerDismissed: Bool {
@@ -140,6 +168,10 @@ final class SettingsManager: ObservableObject {
 
         // Banner settings
         self.arrangeTextBannerDismissed = defaults.bool(forKey: Keys.arrangeTextBannerDismissed)
+
+        // App settings. Info.plist has no LSUIElement, so the app launches
+        // regular and applyDockVisibility() demotes it only if this is off.
+        self.showInDock = defaults.object(forKey: Keys.showInDock) as? Bool ?? true
     }
     
     // MARK: - Reset Methods
@@ -179,5 +211,6 @@ final class SettingsManager: ObservableObject {
         speechSyncEnabled = false
         speechLocale = "en-IN"
         speechHighlightPhrase = true
+        showInDock = true
     }
 }

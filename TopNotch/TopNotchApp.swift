@@ -18,7 +18,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        // Accessory unless the user turned the Dock icon on in settings.
+        SettingsManager.shared.applyDockVisibility()
         notchController = NotchPanelController()
 
         // Minimal menu bar item for quit access — the notch is the primary UI.

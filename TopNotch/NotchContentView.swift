@@ -522,6 +522,7 @@ struct NotchContentView: View {
             VStack(alignment: .leading, spacing: 16) {
                 settingsTeleprompterSection
                 settingsAppearanceSection
+                settingsGeneralSection
                 settingsShortcutsSection
             }
             .padding(NotchChromeMetrics.popoverPadding)
@@ -728,6 +729,31 @@ struct NotchContentView: View {
                     .popoverControlCard()
                 }
             }
+        }
+    }
+
+    private var settingsGeneralSection: some View {
+        popoverSection("General", systemImage: "gearshape") {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Show in Dock")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(popoverSecondaryColor)
+                    Text("Keeps a Dock icon you can right-click to quit. Turn off to live only in the notch and the menu bar.")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(popoverMutedColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 10)
+                Toggle("", isOn: Binding(
+                    get: { model.settings.showInDock },
+                    set: { model.settings.showInDock = $0 }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .colorScheme(.light)
+            }
+            .popoverControlCard()
         }
     }
 
